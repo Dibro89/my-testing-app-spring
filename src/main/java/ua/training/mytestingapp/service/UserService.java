@@ -7,13 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ua.training.mytestingapp.entity.User;
 import ua.training.mytestingapp.entity.projection.UserListItemProjection;
 import ua.training.mytestingapp.repository.UserRepository;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 @Service
@@ -26,6 +24,10 @@ public class UserService implements UserDetailsService {
 
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
     }
 
     public Optional<User> findByUsername(String username) {
@@ -49,20 +51,5 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException(username));
-    }
-
-    @PostConstruct
-    public void createAdmin() {
-        final String adminUsername = "admin";
-        final String adminPassword = "admin";
-        final String adminDisplayName = "Admin";
-
-
-        User admin = new User();
-        admin.setUsername(adminUsername);
-        admin.setPassword(new BCryptPasswordEncoder().encode(adminPassword));
-        admin.setDisplayName(adminDisplayName);
-        admin.setAdmin(true);
-        save(admin);
     }
 }

@@ -1,20 +1,18 @@
 package ua.training.mytestingapp.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Test {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
@@ -30,13 +28,15 @@ public class Test {
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
 
-    public Optional<Question> getQuestion(long id) {
-        for (Question question : getQuestions()) {
-            if (question.getId() == id) {
-                return Optional.of(question);
-            }
+    @OneToMany(mappedBy = "test")
+    private List<Attempt> attempts;
+
+    public void addQuestion(Question question) {
+        if (questions == null) {
+            questions = new ArrayList<>();
         }
-        return Optional.empty();
+        questions.add(question);
+        question.setTest(this);
     }
 
     @PrePersist
@@ -44,17 +44,5 @@ public class Test {
         if (creationDate == null) {
             creationDate = LocalDate.now();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "Test{" +
-            "id=" + id +
-            ", name='" + name + '\'' +
-            ", duration=" + duration +
-            ", difficulty=" + difficulty +
-            ", creationDate=" + creationDate +
-            ", questions=" + questions +
-            '}';
     }
 }

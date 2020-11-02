@@ -28,7 +28,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public MessageSource messageSource() {
         var messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.setBasename("file:src/main/resources/messages");
-        messageSource.setDefaultEncoding("utf-8");
         messageSource.setCacheSeconds(1);
         return messageSource;
     }

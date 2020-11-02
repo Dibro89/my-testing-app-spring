@@ -1,24 +1,24 @@
 package ua.training.mytestingapp.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class User implements UserDetails {
 
+    public static final String ROLE_USER = "ROLE_USER";
+    public static final String ROLE_ADMIN = "ROLE_ADMIN";
+
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true)
@@ -28,11 +28,34 @@ public class User implements UserDetails {
 
     private String displayName;
 
+    private LocalDate registrationDate;
+
+    @OneToMany(mappedBy = "user")
+    private List<Attempt> attempts;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set<String> roles;
+
     private boolean locked;
 
-    private boolean admin;
+    public void addRole(String role) {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        roles.add(role);
+    }
 
-    private LocalDate registrationDate;
+    public boolean isAdmin() {
+        return roles.contains(ROLE_ADMIN);
+    }
+
+    public void setAdmin(boolean admin) {
+        if (admin) {
+            addRole(ROLE_ADMIN);
+        } else if (roles != null) {
+            roles.remove(ROLE_ADMIN);
+        }
+    }
 
     @PrePersist
     public void prePersist() {
@@ -43,11 +66,9 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (isAdmin()) {
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"), new SimpleGrantedAuthority("ROLE_ADMIN"));
-        } else {
-            return List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        }
+        return roles.stream()
+            .map(SimpleGrantedAuthority::new)
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -68,18 +89,5 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return username.equals(user.username);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(username);
     }
 }

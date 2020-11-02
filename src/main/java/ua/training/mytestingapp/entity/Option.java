@@ -1,20 +1,15 @@
 package ua.training.mytestingapp.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Option {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -23,13 +18,4 @@ public class Option {
     private String text;
 
     private boolean correct;
-
-    @Override
-    public String toString() {
-        return "Option{" +
-            "id=" + id +
-            ", text='" + text + '\'' +
-            ", correct=" + correct +
-            '}';
-    }
 }

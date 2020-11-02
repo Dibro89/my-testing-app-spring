@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ua.training.mytestingapp.dto.RegistrationForm;
+import ua.training.mytestingapp.dto.UserRegistrationForm;
 import ua.training.mytestingapp.entity.User;
 import ua.training.mytestingapp.service.UserService;
 
@@ -27,8 +27,8 @@ public class UserRegistrationController {
     private final PasswordEncoder passwordEncoder;
 
     @ModelAttribute("form")
-    public RegistrationForm form() {
-        return new RegistrationForm();
+    public UserRegistrationForm form() {
+        return new UserRegistrationForm();
     }
 
     @GetMapping
@@ -37,7 +37,11 @@ public class UserRegistrationController {
     }
 
     @PostMapping
-    public String register(Model model, @Valid @ModelAttribute("form") RegistrationForm form, Errors errors) {
+    public String register(
+        Model model,
+        @Valid @ModelAttribute("form") UserRegistrationForm form,
+        Errors errors
+    ) {
         if (errors.hasFieldErrors()) {
             List<String> fieldErrors = errors.getFieldErrors().stream()
                 .map(FieldError::getField)
@@ -47,7 +51,7 @@ public class UserRegistrationController {
         }
 
         if (userService.existsByUsername(form.getUsername())) {
-            model.addAttribute("errors", List.of("username.exists"));
+            model.addAttribute("errors", List.of("username-exists"));
             return "user_edit";
         }
 

@@ -11,7 +11,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import ua.training.mytestingapp.dto.EditForm;
+import ua.training.mytestingapp.dto.UserEditForm;
 import ua.training.mytestingapp.entity.User;
 import ua.training.mytestingapp.service.UserService;
 
@@ -28,32 +28,34 @@ public class UserEditController {
     private final PasswordEncoder passwordEncoder;
 
     @ModelAttribute("targetUser")
-    public User targetUser(@PathVariable String username) {
+    public User targetUser(
+        @PathVariable String username
+    ) {
         return userService.findByUsername(username)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @ModelAttribute("form")
-    public EditForm form() {
-        return new EditForm();
+    public UserEditForm form() {
+        return new UserEditForm();
     }
 
     @GetMapping("/edit")
-    @PreAuthorize("hasRole('ADMIN') or #user == #targetUser")
+    @PreAuthorize("hasRole('ADMIN') || (#user != null && #user.id == #targetUser.id)")
     public String showEditForm(
-        @ModelAttribute("targetUser") User targetUser,
-        @AuthenticationPrincipal User user
+        @AuthenticationPrincipal User user,
+        @ModelAttribute("targetUser") User targetUser
     ) {
         return "user_edit";
     }
 
     @PostMapping("/edit")
-    @PreAuthorize("hasRole('ADMIN') or #user == #targetUser")
+    @PreAuthorize("hasRole('ADMIN') || (#user != null && #user.id == #targetUser.id)")
     public String edit(
         Model model,
-        @ModelAttribute("targetUser") User targetUser,
         @AuthenticationPrincipal User user,
-        @Valid @ModelAttribute("form") EditForm form,
+        @ModelAttribute("targetUser") User targetUser,
+        @Valid @ModelAttribute("form") UserEditForm form,
         Errors errors
     ) {
         if (errors.hasFieldErrors()) {
@@ -78,8 +80,11 @@ public class UserEditController {
 
     @GetMapping("/block")
     @PreAuthorize("hasRole('ADMIN')")
-    public String block(@ModelAttribute("target") User target) {
+    public String block(
+        @ModelAttribute("targetUser") User target
+    ) {
         target.setLocked(!target.isLocked());
+        userService.save(target);
         return "redirect:/users/" + target.getUsername();
     }
 }

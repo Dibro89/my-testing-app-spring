@@ -1,20 +1,15 @@
 package ua.training.mytestingapp.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
-@Getter
-@Setter
+@Data
 public class Attempt {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -24,4 +19,20 @@ public class Attempt {
     private Test test;
 
     private String score;
+
+    public Attempt() {
+    }
+
+    public Attempt(User user, Test test, String score) {
+        this.user = user;
+        this.test = test;
+        this.score = score;
+
+        init();
+    }
+
+    private void init() {
+        user.getAttempts().add(this);
+        test.getAttempts().add(this);
+    }
 }
