@@ -59,6 +59,10 @@ public class TestService {
 
     @Transactional
     public void createSampleTest() {
+        if (testRepository.existsById(1L)) {
+            return;
+        }
+
         Test test = new Test();
         test.setName("Sample test");
         test.setSubject("Sample subject");

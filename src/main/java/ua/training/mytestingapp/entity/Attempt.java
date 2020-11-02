@@ -19,20 +19,4 @@ public class Attempt {
     private Test test;
 
     private String score;
-
-    public Attempt() {
-    }
-
-    public Attempt(User user, Test test, String score) {
-        this.user = user;
-        this.test = test;
-        this.score = score;
-
-        init();
-    }
-
-    private void init() {
-        user.getAttempts().add(this);
-        test.getAttempts().add(this);
-    }
 }

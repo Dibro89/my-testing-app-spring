@@ -10,6 +10,7 @@ import ua.training.mytestingapp.service.TestService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @Controller
 @RequestMapping("/")
@@ -27,7 +28,7 @@ public class HomeController {
         Optional<String> sort
     ) {
         List<Test> tests = testService.findAllBySubject(
-            subject,
+            subject.filter(Predicate.not(String::isBlank)),
             sort.filter(SORTS::contains).orElse("byName")
         );
 

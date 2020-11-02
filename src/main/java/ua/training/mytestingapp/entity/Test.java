@@ -1,5 +1,6 @@
 package ua.training.mytestingapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ public class Test {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String name;
 
     private String subject;
@@ -29,6 +31,7 @@ public class Test {
     private List<Question> questions;
 
     @OneToMany(mappedBy = "test")
+    @JsonIgnore
     private List<Attempt> attempts;
 
     public void addQuestion(Question question) {

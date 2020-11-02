@@ -7,7 +7,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 import ua.training.mytestingapp.dto.AttemptForm;
 import ua.training.mytestingapp.entity.Test;
@@ -27,25 +30,12 @@ public class TestController {
     private final TestService testService;
     private final JmsTemplate jmsTemplate;
 
-    @GetMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String showCreateForm() {
-        return "test_edit";
-    }
-
-    @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
-    @ResponseBody
-    public Map<String, Object> createTest(
-        Test test
-    ) {
-        testService.save(test);
-        return Map.of("testId", test.getId());
-    }
-
     @GetMapping("/{testId}")
     @PreAuthorize("hasRole('USER')")
-    public String info(Model model, @PathVariable Long testId) {
+    public String info(
+        Model model,
+        @PathVariable Long testId
+    ) {
         Test test = testService.findById(testId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
@@ -86,35 +76,6 @@ public class TestController {
         jmsTemplate.convertAndSend(JmsAttemptCheckingMessagingService.DESTINATION_NAME, form);
 
         return "test_result";
-    }
-
-    @GetMapping("/{testId}/edit")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String showTestEditForm(
-        @PathVariable Long testId
-    ) {
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    @PostMapping("/{testId}/edit")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String editTest(
-        @PathVariable Long testId
-    ) {
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    @GetMapping("/{testId}/delete")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String delete(
-        @PathVariable Long testId
-    ) {
-        Test test = testService.findById(testId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        testService.delete(test);
-
-        return "redirect:/";
     }
 
     private static Map<String, Object> buildTestInfo(Test test) {

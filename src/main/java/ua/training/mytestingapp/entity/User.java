@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
+@Table(name = "mta_user")
 @Data
 public class User implements UserDetails {
 

@@ -4,7 +4,7 @@
 <div class="container flex-fill">
     <h4 th:text="#{test-edit.heading}">Heading</h4>
     <hr>
-    <form onsubmit="createTest(event)">
+    <form onsubmit="createTest(event)" id="main-form">
         <div class="row">
             <div class="col-md-8 col-lg-6 mx-auto">
                 <div class="form-group">
@@ -36,21 +36,24 @@
 </div>
 
 <script th:inline="javascript">
+    const testToLoad = /*[(${test} ?: 'null')]*/ null;
+
     let nextId = 1;
     let nextQuestion = 1;
 
-    function addQuestion(event) {
-        event.preventDefault();
+    function addQuestion(event, question = {text: '', multiple: false}) {
+        if (event) event.preventDefault();
+
         $('#questions-container').append(`
             <div class="col-md-8 col-lg-6 mx-auto" data-question="${nextQuestion++}">
                 <h5>[(#{test-edit.question})]<a class="text-danger float-right" href="#" onclick="removeQuestion(event)">[(#{test-edit.remove-question})]</a></h5>
                 <label for="${'my-id' + (nextId)}" class="sr-only">[(#{test-edit.question-text})]</label>
-                <textarea id="${'my-id' + (nextId++)}" class="form-control form-control-sm mb-2" required="" placeholder="[(#{test-edit.question-text})]"></textarea>
+                <textarea id="${'my-id' + (nextId++)}" class="form-control form-control-sm mb-2" required="" placeholder="[(#{test-edit.question-text})]">${question.text}</textarea>
                 <div>
                 </div>
                 <div class="form-inline">
                     <div class="custom-control custom-switch">
-                        <input class="custom-control-input" type="checkbox" id="${'my-id' + (nextId)}" onchange="setMultiple(event)">
+                        <input class="custom-control-input" type="checkbox" id="${'my-id' + (nextId)}" ${question.multiple && ' checked '} onchange="setMultiple(event)">
                         <label class="custom-control-label" for="${'my-id' + (nextId++)}">[(#{test-edit.multiple})]</label>
                     </div>
                     <button class="btn btn-success btn-sm ml-auto" type="button" onclick="addOption(event)">[(#{test-edit.add-option})]</button>
@@ -68,22 +71,22 @@
         event.target.parentElement.parentElement.remove();
     }
 
-    function addOption(event) {
-        event.preventDefault();
+    function addOption(event, option = {text: '', correct: false}, multiple = false, target = null, questionId = null) {
+        if (event) event.preventDefault();
 
-        const optionType = event.target.previousElementSibling.querySelector('input[type=checkbox]').checked
+        const optionType = (event ? event.target.previousElementSibling.querySelector('input[type=checkbox]').checked : multiple)
             ? 'checkbox'
             : 'radio';
 
-        $(event.target.parentElement.previousElementSibling).append(`
+        $(event ? event.target.parentElement.previousElementSibling : target).append(`
             <div class="input-group mb-2">
                 <div class="input-group-prepend">
                     <span class="input-group-text">
-                        <input type="${optionType}" name="option-${event.target.parentElement.parentElement.dataset.question}">
+                        <input type="${optionType}" name="option-${event ? event.target.parentElement.parentElement.dataset.question : questionId}" ${option.correct && ' checked '}>
                     </span>
                 </div>
                 <label for="${'my-id' + (nextId)}" class="sr-only">[(#{test-edit.option-text})]</label>
-                <input id="${'my-id' + (nextId++)}" class="form-control form-control-sm" type="text" placeholder="[(#{test-edit.option-text})]" required="">
+                <input id="${'my-id' + (nextId++)}" class="form-control form-control-sm" type="text" placeholder="[(#{test-edit.option-text})]" required="" value="${option.text}">
                 <div class="input-group-append">
                     <button class="btn btn-danger btn-sm" type="button" onclick="removeOption(event)">X</button>
                 </div>
@@ -115,7 +118,7 @@
             .forEach(questionElement => {
                 const question = {
                     text: questionElement.querySelector('textarea').value,
-                    multiple: false,
+                    multiple: questionElement.querySelector('.form-inline input[type=checkbox]').checked,
                     options: []
                 };
 
@@ -138,11 +141,29 @@
             questions
         };
 
-        fetch('[(@{/tests/create})]', {method: 'POST'})
+        const url = testToLoad ? '[(@{/tests/{testId}/edit(testId=${testId})})]' : '[(@{/tests/create})]';
+
+        fetch(url, {method: 'POST', body: JSON.stringify(test), headers: {'Content-Type': 'application/json'}})
             .then(res => res.json())
             .then(obj => {
                 location.href = '[(@{/tests/})]' + obj.testId;
             });
+    }
+
+    if (testToLoad) {
+        const form = document.querySelector('#main-form');
+        form.testName.value = testToLoad.name;
+        form.subject.value = testToLoad.subject;
+        form.difficulty.value = testToLoad.difficulty;
+        form.duration.value = testToLoad.duration;
+
+        testToLoad.questions.forEach(question => {
+            addQuestion(null, question);
+            const target = document.querySelector(`div[data-question='${nextQuestion - 1}'] div`);
+            question.options.forEach(option => {
+                addOption(null, option, question.multiple, target, nextQuestion - 1);
+            });
+        });
     }
 </script>
 

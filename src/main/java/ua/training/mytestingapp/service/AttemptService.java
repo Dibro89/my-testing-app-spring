@@ -27,13 +27,28 @@ public class AttemptService {
         Test test = testService.findById(form.getTestId())
             .orElseThrow();
 
+        Attempt attempt = check(test, form);
+
+        attempt.setUser(user);
+        user.getAttempts().add(attempt);
+
+        attempt.setTest(test);
+        test.getAttempts().add(attempt);
+
+        return attempt;
+    }
+
+    public Attempt check(Test test, AttemptForm form) {
+        Attempt attempt = new Attempt();
+
         long count = form.getParameterMap().entrySet().stream()
             .filter(entry -> checkQuestion(test, entry))
             .count();
 
         String score = count + "/" + test.getQuestions().size();
+        attempt.setScore(score);
 
-        return new Attempt(user, test, score);
+        return attempt;
     }
 
     private static boolean checkQuestion(Test test, Map.Entry<String, String[]> answerEntry) {

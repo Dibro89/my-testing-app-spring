@@ -1,5 +1,6 @@
 package ua.training.mytestingapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ public class Question {
     private Long id;
 
     @ManyToOne
+    @JsonIgnore
     private Test test;
 
     private String text;
@@ -28,6 +30,7 @@ public class Question {
         if (options == null) {
             options = new ArrayList<>();
         }
+        options.add(option);
         option.setQuestion(this);
     }
 }
